@@ -2,4 +2,5 @@
 Este repositorio contiene los diferentes proyectos desarrollados durante el curso "Clasificación de Imágenes con Redes Neuronales", impartido en el semestre 2025-I en la Licenciatura en Matemáticas Aplicadas.
 
 Proyecto--- Detección de caracteres escritos en braile.
+
 Alumna  --- Karla Romina Juárez Torres
