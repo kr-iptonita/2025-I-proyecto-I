@@ -9,8 +9,8 @@ from keras import layers as L  # Importar capas de Keras
 from keras.models import Model, load_model  # Importar modelo y función para cargar modelos
 from keras.regularizers import l2  # Importar regularizador L2
 from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, EarlyStopping  # Importar callbacks para el entrenamiento
-
 from tensorflow.keras.preprocessing import image  # Importar funciones de preprocesamiento de imágenes de Keras
+from tensorflow.keras.preprocessing.image import ImageDataGenerator  # Importar generador de datos de imágenes
 
 # Crear un directorio para almacenar las imágenes
 os.mkdir('./images/')
@@ -99,7 +99,7 @@ pred = model.predict(val_generator)
 pred
 
 # Cargar y mostrar una imagen
-img = image.load_img('letra.jpg')  # Cargar la imagen
+img = image.load_img('letra.png')  # Cargar la imagen
 plt.imshow(img)  # Mostrar la imagen
 
 x = image.img_to_array(img)  # Convertir la imagen a un array
