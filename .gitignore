@@ -1,0 +1,9 @@
+
+/Angelina_Dataset
+/images
+Angelina_DS_merger.py
+invertidor.py
+BrailleNet.keras
+BrailleNet.keras
+/Braille_Dataset
+*.keras
