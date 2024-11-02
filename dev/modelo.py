@@ -12,12 +12,15 @@ from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, EarlyStopping  #
 from tensorflow.keras.preprocessing import image  # Importar funciones de preprocesamiento de imágenes de Keras
 from tensorflow.keras.preprocessing.image import ImageDataGenerator  # Importar generador de datos de imágenes
 
-# Crear un directorio para almacenar las imágenes
-os.mkdir('./images/')
-alpha = 'a'  # Inicializar la letra para los directorios
-for i in range(0, 26):  # Crear directorios para cada letra de la A a la Z
-    os.mkdir('./images/' + alpha)
-    alpha = chr(ord(alpha) + 1)  # Pasar a la siguiente letra
+# Crear un directorio para almacenar las imágenes, solo si no existe
+if not os.path.exists('./images/'):
+    os.mkdir('./images/')
+    alpha = 'a'  # Inicializar la letra para los directorios
+    for i in range(0, 26):  # Crear directorios para cada letra de la A a la Z
+        os.mkdir('./images/' + alpha)
+        alpha = chr(ord(alpha) + 1)  # Pasar a la siguiente letra
+else:
+    print("El directorio './images/' ya existe. Omite la creación de carpetas.")
 
 rootdir = 'Braille_Dataset/'  # Directorio raíz del conjunto de datos
 for file in os.listdir(rootdir):  # Recorrer los archivos en el directorio
@@ -46,17 +49,19 @@ model_ckpt = ModelCheckpoint('BrailleNet.keras', save_best_only=True)  # Guardar
 reduce_lr = ReduceLROnPlateau(patience=8, verbose=0)  # Reducir la tasa de aprendizaje si no hay mejora
 early_stop = EarlyStopping(patience=15, verbose=1)  # Detener el entrenamiento si no hay mejora
 
-# Definir la arquitectura del modelo
+# Definir la arquitectura del modelo con más capas
 entry = L.Input(shape=(28, 28, 3))  # Entrada del modelo
 x = L.SeparableConv2D(64, (3, 3), activation='relu')(entry)  # Primera capa convolucional separable
 x = L.MaxPooling2D((2, 2))(x)  # Capa de max pooling
 x = L.SeparableConv2D(128, (3, 3), activation='relu')(x)  # Segunda capa convolucional separable
 x = L.MaxPooling2D((2, 2))(x)  # Capa de max pooling
-x = L.SeparableConv2D(256, (2, 2), activation='relu')(x)  # Tercera capa convolucional separable
+x = L.SeparableConv2D(256, (3, 3), activation='relu')(x)  # Tercera capa convolucional separable
+# Omitir el MaxPooling aquí para evitar que las dimensiones sean negativas
+x = L.SeparableConv2D(512, (2, 2), activation='relu')(x)  # Cuarta capa convolucional separable
 x = L.GlobalMaxPooling2D()(x)  # Capa de max pooling global
-x = L.Dense(256)(x)  # Capa densa
+x = L.Dense(512)(x)  # Capa densa
 x = L.LeakyReLU()(x)  # Activación LeakyReLU
-x = L.Dense(64, kernel_regularizer=l2(2e-4))(x)  # Capa densa con regularización L2
+x = L.Dense(256, kernel_regularizer=l2(2e-4))(x)  # Capa densa con regularización L2
 x = L.LeakyReLU()(x)  # Activación LeakyReLU
 x = L.Dense(26, activation='softmax')(x)  # Capa de salida con activación softmax
 
@@ -64,6 +69,10 @@ x = L.Dense(26, activation='softmax')(x)  # Capa de salida con activación softm
 model = Model(entry, x)
 # Compilar el modelo con función de pérdida y optimizador
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+# Mostrar el resumen del modelo para ver la cantidad de capas
+model.summary()
+
 
 # Entrenar el modelo
 history = model.fit(
@@ -93,22 +102,3 @@ plt.plot(history.history['val_accuracy'], label='precisión de validación')
 plt.legend()
 plt.show()
 plt.savefig('AccVal_acc')  # Guardar la gráfica de precisión
-
-# Realizar predicciones en el conjunto de validación
-pred = model.predict(val_generator)
-pred
-
-# Cargar y mostrar una imagen
-img = image.load_img('letra.png')  # Cargar la imagen
-plt.imshow(img)  # Mostrar la imagen
-
-x = image.img_to_array(img)  # Convertir la imagen a un array
-# print(x)  # Mostrar el array (comentar si no se necesita)
-
-# print(x.shape)  # Mostrar la forma del array (comentar si no se necesita)
-
-x = np.expand_dims(x, axis=0)  # Expandir dimensiones para la predicción
-model.predict(x)  # Realizar la predicción
-
-a = np.argmax(model.predict(x), axis=1)  # Obtener la clase predicha
-print('predicción = ', a)  # Mostrar la clase predicha
